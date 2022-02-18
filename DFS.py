@@ -1,8 +1,45 @@
 # Helper functions to aid in your implementation. Can edit/remove
-from Chess import Piece, Board, State
+import copy
+from Chess import parser, XYtoPos
+import numpy as np
 
 def search():
-    pass
+    initState = parser()
+    print(np.array(initState.board.threatened))
+    nodesExplored = 0
+    exploredNodes = []
+    frontier = []
+    initialRun = True
+    while initialRun or len(frontier) != 0:
+        nodesExplored+=1
+        if not initialRun:
+            # print("Frontier", frontier)
+            currentPath:list = frontier.pop(0)
+            currentNode = currentPath[-1][1]
+        else:
+            currentPath = []
+            initialRun = False
+            currentNode = (initState.player_x, initState.player_y)
+
+        initState.setPlayerPiece(initState.player_piece.type, currentNode[0], currentNode[1])
+
+        # goal check
+        if initState.goalCheck():
+            for i in range(len(currentPath)):
+                currentPath[i] = [XYtoPos(currentPath[i][0]), XYtoPos(currentPath[i][1])]
+            return currentPath, nodesExplored
+
+        newDests = initState.possibleNewDestination(exploredNodes)
+        for newDest in newDests:            
+
+            exploredNodes.append(newDest)
+            if len(currentPath) == 0:
+                newPath = [[currentNode, newDest]]
+            else:
+                newPath:list = copy.copy(currentPath)
+                newPath.append([currentNode, newDest])
+            frontier.insert(0, newPath)
+    return [], 0
 
 
 ### DO NOT EDIT/REMOVE THE FUNCTION HEADER BELOW###
@@ -13,3 +50,5 @@ def run_DFS():
     moves, nodesExplored = search() #For reference
     return moves, nodesExplored #Format to be returned
     
+
+print(run_DFS())
