@@ -11,6 +11,9 @@ def search():
     exploredNodes = []
     frontier = []
     initialRun = True
+    currentState = State()
+    currentState.setBoard(board)
+    currentState.setGoal(goals)
     while initialRun or len(frontier) != 0:
         nodesExplored+=1
         if not initialRun:
@@ -22,20 +25,20 @@ def search():
             initialRun = False
             currentNode = (initState.player_x, initState.player_y)
 
-        currentState = State()
-        currentState.setBoard(board)
-        currentState.setGoal(goals)
         currentState.setPlayerPiece(initState.player_piece.type, currentNode[0], currentNode[1])
-
-        # goal check
-        if currentState.goalCheck():
-            moves = currentPath
-            break
 
         newDests = currentState.possibleNewDestination(exploredNodes)
         for newDest in newDests:
-            # if newDest in exploredNodes:
-            #     continue
+
+            # goal check
+            currentState.setPlayerPiece(initState.player_piece.type, newDest[0], newDest[1])
+            if currentState.goalCheck():
+                currentPath.append([currentNode, newDest])
+                for i in range(len(currentPath)):
+                    currentPath[i] = [XYtoPos(currentPath[i][0]), XYtoPos(currentPath[i][1])]
+                return currentPath, nodesExplored
+            
+
             exploredNodes.append(newDest)
             if len(currentPath) == 0:
                 newPath = [[currentNode, newDest]]
@@ -43,9 +46,7 @@ def search():
                 newPath:list = copy.deepcopy(currentPath)
                 newPath.append([currentNode, newDest])
             frontier.append(newPath)
-    for i in range(len(moves)):
-        moves[i] = [XYtoPos(moves[i][0]), XYtoPos(moves[i][1])]
-    return moves, nodesExplored
+    return None
 
 ### DO NOT EDIT/REMOVE THE FUNCTION HEADER BELOW###
 # To return: List of moves and nodes explored

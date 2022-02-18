@@ -3,8 +3,6 @@ import sys
 
 class Piece:
 
-    pieces = ["King", "Rook", "Bishop", "Queen", "Knight", "Obstacle", "Empty"]
-
     movement = {"King": [(1, 1, 1), (1, 0, 1), (1, -1, 1), (0, -1, 1), (-1, -1, 1), (-1, 0, 1), (-1, 1, 1), (0, 1, 1)],
                 "Rook": [(1, 0, 0), (0, -1, 0), (-1, 0, 0), (0, 1, 0)],
                 "Bishop": [(1, 1, 0), (1, -1, 0), (-1, -1, 0), (-1, 1, 0)],
@@ -25,6 +23,8 @@ class Piece:
 
 
 class Board:
+
+    enemyPos = []
 
     def __init__(self, x: int, y: int) -> None:
         self.board_size_x = x
@@ -53,7 +53,11 @@ class Board:
     def addEnemyPiece(self, piece: str, x: int, y: int) -> None:
         self.pieces[x][y] = Piece(piece)
         self.blocked[x][y] = True
-        # self.board.threatened[x][y] = True
+        self.enemyPos.append((x, y))
+    
+    def addObstaclePiece(self, x: int, y: int) -> None:
+        self.pieces[x][y] = Piece("Obstacle")
+        self.blocked[x][y] = True
 
     def isWithinBoard(self, x, y) -> bool:
         if (0 > x or x >= self.board_size_x) or (0 > y or y >= self.board_size_y):
@@ -67,21 +71,20 @@ class Board:
         return self.isWithinBoard(x, y) == False or self.pieces[x][y].isEmpty() == False
     
     def updateThreatened(self):
-        for x in range(self.board_size_x):
-            for y in range(self.board_size_y):
-                piece: Piece = self.pieces[x][y]
-                if piece.isEmpty() or piece.type == "Obstacle":
-                    continue
-                if piece.type == "Knight":
-                    for twoSteps in [-2, 2]:
-                        for oneStep in [-1, 1]:
-                            self.setThreatened(x+twoSteps, y+oneStep)
-                            self.setThreatened(x+oneStep, y+twoSteps)
-                else:
-                    transModel = transitionModel(
-                        self, x, y, piece.possibleMovement())
-                    for possibleX, possibleY in transModel.getAllPossibleNewPos():
-                        self.setThreatened(possibleX, possibleY)
+        for x, y in self.enemyPos:
+            piece: Piece = self.pieces[x][y]
+            if piece.isEmpty() or piece.type == "Obstacle":
+                continue
+            if piece.type == "Knight":
+                for twoSteps in [-2, 2]:
+                    for oneStep in [-1, 1]:
+                        self.setThreatened(x+twoSteps, y+oneStep)
+                        self.setThreatened(x+oneStep, y+twoSteps)
+            else:
+                transModel = transitionModel(
+                    self, x, y, piece.possibleMovement())
+                for possibleX, possibleY in transModel.getAllPossibleNewPos():
+                    self.setThreatened(possibleX, possibleY)
 
     def setThreatened(self, x, y) -> None:
         if self.isWithinBoard(x, y) == False:
@@ -187,7 +190,7 @@ def parser() -> State:
     posOfObstacles = input().split(":")[1].split(" ")
     for obstacle in posOfObstacles:
         x, y = PosToXY(obstacle)
-        game.board.addEnemyPiece("Obstacle", x, y)
+        game.board.addObstaclePiece(x, y)
     input()
 
     # cost
