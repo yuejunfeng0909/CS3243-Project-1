@@ -49,6 +49,12 @@ class Board:
         self.cost = []
         for i in range(x):
             self.cost.append([1, ] * y)
+    
+
+    def addEnemyPiece(self, piece: str, x: int, y: int) -> None:
+        self.pieces[x][y] = Piece(piece)
+        self.blocked[x][y] = True
+        # self.board.threatened[x][y] = True
 
     def isWithinBoard(self, x, y) -> bool:
         if (0 > x or x >= self.board_size_x) or (0 > y or y >= self.board_size_y):
@@ -60,6 +66,28 @@ class Board:
 
     def isBlocked(self, x, y) -> bool:
         return self.isWithinBoard(x, y) == False or self.pieces[x][y].isEmpty() == False
+    
+    def updateThreatened(self):
+        for x in range(self.board_size_x):
+            for y in range(self.board_size_y):
+                piece: Piece = self.pieces[x][y]
+                if piece.isEmpty() or piece.type == "Obstacle":
+                    continue
+                if piece.type == "Knight":
+                    for twoSteps in [-2, 2]:
+                        for oneStep in [-1, 1]:
+                            self.setThreatened(x+twoSteps, y+oneStep)
+                            self.setThreatened(x+oneStep, y+twoSteps)
+                else:
+                    transModel = transitionModel(
+                        self, x, y, piece.possibleMovement())
+                    for possibleX, possibleY in transModel.getAllPossibleNewPos():
+                        self.setThreatened(possibleX, possibleY)
+
+    def setThreatened(self, x, y) -> None:
+        if self.isWithinBoard(x, y) == False:
+            return
+        self.threatened[x][y] = True
 
 
 class transitionModel():
@@ -100,40 +128,16 @@ class transitionModel():
 class State:
     goals = []
 
-    def __init__(self, x: int, y: int) -> None:
-        self.board = Board(x, y)
-
     def __eq__(self, __o: object) -> bool:
         return self.player_x == __o.player_x and self.player_y == __o.player_y
 
-    def addEnemyPiece(self, piece: str, x: int, y: int) -> None:
-        self.board.pieces[x][y] = Piece(piece)
-        self.board.blocked[x][y] = True
-        # self.board.threatened[x][y] = True
+    def initBoard(self, x: int, y: int) -> Board:
+        self.board = Board(x, y)
 
-    def updateThreatened(self):
-        for x in range(self.board.board_size_x):
-            for y in range(self.board.board_size_y):
-                piece: Piece = self.board.pieces[x][y]
-                if piece.isEmpty() or piece.type == "Obstacle":
-                    continue
-                if piece.type == "Knight":
-                    for twoSteps in [-2, 2]:
-                        for oneStep in [-1, 1]:
-                            self.setThreatened(x+twoSteps, y+oneStep)
-                            self.setThreatened(x+oneStep, y+twoSteps)
-                else:
-                    transModel = transitionModel(
-                        self.board, x, y, piece.possibleMovement())
-                    for possibleX, possibleY in transModel.getAllPossibleNewPos():
-                        self.setThreatened(possibleX, possibleY)
+    def setBoard(self, board: Board) -> None:
+        self.board = board
 
-    def setThreatened(self, x, y) -> None:
-        if self.board.isWithinBoard(x, y) == False:
-            return
-        self.board.threatened[x][y] = True
-
-    def setUserPiece(self, pieceType, x: int, y: int) -> None:
+    def setPlayerPiece(self, pieceType, x: int, y: int) -> None:
         self.player_piece = Piece(pieceType)
         self.player_x = x
         self.player_y = y
@@ -143,20 +147,31 @@ class State:
     def addGoal(self, x: int, y: int) -> None:
         self.goals.append((x, y))
 
-    def possibleNewStates(self):
-        newStates = []
-        for movements in transitionModel.getAllPossibleNewPos():
+    def setGoal(self, goals:list) -> None:
+        self.goals = goals
+    
+    def goalCheck(self):
+        return (self.player_x, self.player_y) in self.goals
+
+    def possibleNewDestination(self):
+        newDestination = []
+        for movements in self.transModel.getAllPossibleNewPos():
             if self.board.isThreatened(movements[0], movements[1]) == False:
-                newStates.append(
-                    State(self.board, self.player_piece.type, self.player_x, self.player_y))
+                newDestination.append((movements[0], movements[1]))
+        return newDestination
 
 
 def letterToX(character) -> int:
     return ord(character) - ord('a')
 
 
-def PosToXY(pos):
+def PosToXY(pos) -> tuple:
     return (letterToX(pos[0]), int(pos[1:]))
+
+def XYtoPos(xy: tuple) -> tuple:
+    print(xy[0])
+    xCharVal:int = xy[0]+ord('a')
+    return (chr(xCharVal), xy[1])
 
 
 def parser() -> State:
@@ -167,12 +182,13 @@ def parser() -> State:
         return line
     rows = int(input().split(":")[1])
     cols = int(input().split(":")[1])
-    game = State(rows, cols)
+    game = State()
+    game.initBoard(cols, rows)
     input()  # ignore
     posOfObstacles = input().split(":")[1].split(" ")
     for obstacle in posOfObstacles:
         x, y = PosToXY(obstacle)
-        game.addEnemyPiece("Obstacle", x, y)
+        game.board.addEnemyPiece("Obstacle", x, y)
     input()
 
     # cost
@@ -194,13 +210,13 @@ def parser() -> State:
     for i in range(numOfEnemies):
         enemyType, enemyPos = input()[1:][:-1].split(",")
         enemyX, enemyY = PosToXY(enemyPos)
-        game.addEnemyPiece(enemyType, enemyX, enemyY)
-    game.updateThreatened()
+        game.board.addEnemyPiece(enemyType, enemyX, enemyY)
+    game.board.updateThreatened()
     input()
     input()
     playerType, playerPos = input()[1:][:-1].split(",")
     playerX, playerY = PosToXY(playerPos)
-    game.setUserPiece(playerType, playerX, playerY)
+    game.setPlayerPiece(playerType, playerX, playerY)
     goals = input().split(":")[1].split(" ")
     for goal in goals:
         x, y = PosToXY(goal)
@@ -208,11 +224,10 @@ def parser() -> State:
     f.close()
     return game
 
-
-initState = parser()
-print("Blocked")
-print(np.array(initState.board.blocked))
-print("Threatened")
-print(np.array(initState.board.threatened))
-print("cost")
-print(np.array(initState.board.cost))
+# initState = parser()
+# print("Blocked")
+# print(np.array(initState.board.blocked))
+# print("Threatened")
+# print(np.array(initState.board.threatened))
+# print("cost")
+# print(np.array(initState.board.cost))
