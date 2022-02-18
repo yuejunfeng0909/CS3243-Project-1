@@ -1,19 +1,13 @@
 # Helper functions to aid in your implementation. Can edit/remove
 import copy
-from Chess import State, parser, XYtoPos
+from Chess import parser, XYtoPos
 
 def search():
     initState = parser()
-    board = initState.board
-    goals = initState.goals
     nodesExplored = 0
-    moves = []
     exploredNodes = []
     frontier = []
     initialRun = True
-    currentState = State()
-    currentState.setBoard(board)
-    currentState.setGoal(goals)
     while initialRun or len(frontier) != 0:
         nodesExplored+=1
         if not initialRun:
@@ -25,14 +19,14 @@ def search():
             initialRun = False
             currentNode = (initState.player_x, initState.player_y)
 
-        currentState.setPlayerPiece(initState.player_piece.type, currentNode[0], currentNode[1])
+        initState.setPlayerPiece(initState.player_piece.type, currentNode[0], currentNode[1])
 
-        newDests = currentState.possibleNewDestination(exploredNodes)
+        newDests = initState.possibleNewDestination(exploredNodes)
         for newDest in newDests:
 
             # goal check
-            currentState.setPlayerPiece(initState.player_piece.type, newDest[0], newDest[1])
-            if currentState.goalCheck():
+            initState.setPlayerPiece(initState.player_piece.type, newDest[0], newDest[1])
+            if initState.goalCheck():
                 currentPath.append([currentNode, newDest])
                 for i in range(len(currentPath)):
                     currentPath[i] = [XYtoPos(currentPath[i][0]), XYtoPos(currentPath[i][1])]
@@ -43,10 +37,10 @@ def search():
             if len(currentPath) == 0:
                 newPath = [[currentNode, newDest]]
             else:
-                newPath:list = copy.deepcopy(currentPath)
+                newPath:list = copy.copy(currentPath)
                 newPath.append([currentNode, newDest])
             frontier.append(newPath)
-    return None
+    return [], 0
 
 ### DO NOT EDIT/REMOVE THE FUNCTION HEADER BELOW###
 # To return: List of moves and nodes explored

@@ -1,6 +1,5 @@
 import sys
 
-
 class Piece:
 
     movement = {"King": [(1, 1, 1), (1, 0, 1), (1, -1, 1), (0, -1, 1), (-1, -1, 1), (-1, 0, 1), (-1, 1, 1), (0, 1, 1)],
@@ -20,7 +19,6 @@ class Piece:
 
     def possibleMovement(self):
         return self.movement[self.type]
-
 
 class Board:
 
@@ -73,8 +71,6 @@ class Board:
     def updateThreatened(self):
         for x, y in self.enemyPos:
             piece: Piece = self.pieces[x][y]
-            if piece.isEmpty() or piece.type == "Obstacle":
-                continue
             if piece.type == "Knight":
                 for twoSteps in [-2, 2]:
                     for oneStep in [-1, 1]:
@@ -101,7 +97,8 @@ class transitionModel():
         self.movements = piece_movements
 
     def moveToDirection(self, x_change: int, y_change: int):
-        new_x, new_y = self.x + x_change, self.y + y_change
+        new_x = self.x + x_change
+        new_y = self.y + y_change
         if (self.board.isWithinBoard(new_x, new_y)):
             return (new_x, new_y)
 
@@ -157,9 +154,9 @@ class State:
 
     def possibleNewDestination(self, visited):
         newDestination = []
-        for movements in self.transModel.getAllPossibleNewPos():
-            newPos = (movements[0], movements[1])
-            if (not newPos in visited) and self.board.isThreatened(movements[0], movements[1]) == False:
+        for newDest in self.transModel.getAllPossibleNewPos():
+            newPos = (newDest[0], newDest[1])
+            if (not newPos in visited) and self.board.isThreatened(newDest[0], newDest[1]) == False:
                 newDestination.append(newPos)
         return newDestination
 
