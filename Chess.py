@@ -1,4 +1,3 @@
-import numpy as np
 import sys
 
 
@@ -153,11 +152,12 @@ class State:
     def goalCheck(self):
         return (self.player_x, self.player_y) in self.goals
 
-    def possibleNewDestination(self):
+    def possibleNewDestination(self, visited):
         newDestination = []
         for movements in self.transModel.getAllPossibleNewPos():
-            if self.board.isThreatened(movements[0], movements[1]) == False:
-                newDestination.append((movements[0], movements[1]))
+            newPos = (movements[0], movements[1])
+            if (not newPos in visited) and self.board.isThreatened(movements[0], movements[1]) == False:
+                newDestination.append(newPos)
         return newDestination
 
 
@@ -169,7 +169,6 @@ def PosToXY(pos) -> tuple:
     return (letterToX(pos[0]), int(pos[1:]))
 
 def XYtoPos(xy: tuple) -> tuple:
-    print(xy[0])
     xCharVal:int = xy[0]+ord('a')
     return (chr(xCharVal), xy[1])
 

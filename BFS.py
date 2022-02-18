@@ -32,10 +32,10 @@ def search():
             moves = currentPath
             break
 
-        newDests = currentState.possibleNewDestination()
+        newDests = currentState.possibleNewDestination(exploredNodes)
         for newDest in newDests:
-            if newDest in exploredNodes:
-                continue
+            # if newDest in exploredNodes:
+            #     continue
             exploredNodes.append(newDest)
             if len(currentPath) == 0:
                 newPath = [[currentNode, newDest]]
@@ -43,6 +43,8 @@ def search():
                 newPath:list = copy.deepcopy(currentPath)
                 newPath.append([currentNode, newDest])
             frontier.append(newPath)
+    for i in range(len(moves)):
+        moves[i] = [XYtoPos(moves[i][0]), XYtoPos(moves[i][1])]
     return moves, nodesExplored
 
 ### DO NOT EDIT/REMOVE THE FUNCTION HEADER BELOW###
@@ -53,4 +55,4 @@ def run_BFS():
     moves, nodesExplored = search() #For reference
     return moves, nodesExplored #Format to be returned
 
-print(run_BFS())
+# print(run_BFS())
