@@ -1,11 +1,13 @@
 # Helper functions to aid in your implementation. Can edit/remove
+import copy
 from Chess import State, parser, XYtoPos
 
 def search():
     initState = parser()
     board = initState.board
     goals = initState.goals
-    moves, nodesExplored = [], 0
+    nodesExplored = 0
+    moves = []
     exploredNodes = []
     frontier = []
     initialRun = True
@@ -13,13 +15,12 @@ def search():
         nodesExplored+=1
         if not initialRun:
             # print("Frontier", frontier)
-            currentMove = frontier.pop(0)
-            moves.append([XYtoPos(currentMove[0]), XYtoPos(currentMove[1])])
-            currentNode = (currentMove[1][0], currentMove[1][1])
+            currentPath:list = frontier.pop(0)
+            currentNode = currentPath[-1][1]
         else:
+            currentPath = []
             initialRun = False
             currentNode = (initState.player_x, initState.player_y)
-        exploredNodes.append(currentNode)
 
         currentState = State()
         currentState.setBoard(board)
@@ -28,13 +29,20 @@ def search():
 
         # goal check
         if currentState.goalCheck():
+            moves = currentPath
             break
 
-        newDests = initState.possibleNewDestination()
+        newDests = currentState.possibleNewDestination()
         for newDest in newDests:
             if newDest in exploredNodes:
                 continue
-            frontier.append([currentNode, newDest])
+            exploredNodes.append(newDest)
+            if len(currentPath) == 0:
+                newPath = [[currentNode, newDest]]
+            else:
+                newPath:list = copy.deepcopy(currentPath)
+                newPath.append([currentNode, newDest])
+            frontier.append(newPath)
     return moves, nodesExplored
 
 ### DO NOT EDIT/REMOVE THE FUNCTION HEADER BELOW###
