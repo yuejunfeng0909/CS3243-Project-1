@@ -152,6 +152,17 @@ class State:
     
     def goalCheck(self):
         return (self.player_x, self.player_y) in self.goals
+    
+    def manhattanDistanceToClosestGoal(self):
+        dist = self.board.board_size_x + self.board.board_size_y
+        selectedGoal = None
+        for goal in self.goals:
+            manhattanDist = abs(self.player_x - goal[0]) + abs(self.player_y - goal[1])
+            if manhattanDist < dist:
+                dist = manhattanDist
+                selectedGoal = goal
+        # print("manhat dist from", (self.player_x, self.player_y), "to", selectedGoal, "is", dist)
+        return dist
 
     def possibleNewDestination(self, visited):
         newDestination = []
