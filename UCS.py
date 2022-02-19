@@ -50,7 +50,7 @@ def search():
                 newPath:list = copy.copy(currentPath)
                 newPath.append([currentNode, newDest])
             hq.heappush(frontier, node(newPath, currentPathCost + initState.board.cost[newDest[0]][newDest[1]]))
-    return [], 0
+    return [], 0, 0
 
 
 ### DO NOT EDIT/REMOVE THE FUNCTION HEADER BELOW###
