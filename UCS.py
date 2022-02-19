@@ -20,35 +20,37 @@ def search():
     frontier = []
     initialRun = True
     while initialRun or len(frontier) != 0:
-        nodesExplored+=1
         if not initialRun:
             frontiernode:node = hq.heappop(frontier)
             currentPath:list = frontiernode.path
-            currentNode = currentPath[-1][1]
+            currentNode = currentPath[-1]
             currentPathCost = frontiernode.cost
         else:
-            currentPath = []
+            currentNode = (initState.player_x, initState.player_y)
+            currentPath = [currentNode]
             currentPathCost = 0
             initialRun = False
-            currentNode = (initState.player_x, initState.player_y)
+        
+        if currentNode in exploredNodes:
+            continue
+
+        exploredNodes.append(currentNode)
+        nodesExplored+=1
 
         initState.setPlayerPiece(initState.player_piece.type, currentNode[0], currentNode[1])
 
         # goal check
         if initState.goalCheck():
-            # print(np.array(initState.board.cost))
-            for i in range(len(currentPath)):
-                currentPath[i] = [XYtoPos(currentPath[i][0]), XYtoPos(currentPath[i][1])]
-            return currentPath, nodesExplored, currentPathCost
-
+            moves = []
+            for i in range(len(currentPath) - 1):
+                moves.append([XYtoPos(currentPath[i]), XYtoPos(currentPath[i+1])])
+            return moves, nodesExplored, currentPathCost
+        
         newDests = initState.possibleNewDestination(exploredNodes)
         for newDest in newDests:
-            exploredNodes.append(newDest)
-            if len(currentPath) == 0:
-                newPath = [[currentNode, newDest]]
-            else:
-                newPath:list = copy.copy(currentPath)
-                newPath.append([currentNode, newDest])
+            newPath:list = copy.copy(currentPath)
+            newPath.append(newDest)
+            initState.setPlayerPiece(initState.player_piece.type, newDest[0], newDest[1])
             hq.heappush(frontier, node(newPath, currentPathCost + initState.board.cost[newDest[0]][newDest[1]]))
     return [], 0, 0
 
