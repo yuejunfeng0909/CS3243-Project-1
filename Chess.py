@@ -51,10 +51,12 @@ class Board:
     def addEnemyPiece(self, piece: str, x: int, y: int) -> None:
         self.pieces[x][y] = Piece(piece)
         self.blocked[x][y] = True
+        self.threatened[x][y] = True
         self.enemyPos.append((x, y))
     
     def addObstaclePiece(self, x: int, y: int) -> None:
         self.pieces[x][y] = Piece("Obstacle")
+        self.threatened[x][y] = True
         self.blocked[x][y] = True
 
     def isWithinBoard(self, x, y) -> bool:
@@ -99,16 +101,15 @@ class transitionModel():
     def moveToDirection(self, x_change: int, y_change: int):
         new_x = self.x + x_change
         new_y = self.y + y_change
-        if (self.board.isWithinBoard(new_x, new_y)):
-            return (new_x, new_y)
+        return (new_x, new_y)
 
     def getAllPossibleMovementToDirection(self, x_change: int, y_change: int, max_steps=0):
         if max_steps == 0:
-            max_steps == max(self.board.board_size_x, self.board.board_size_y)
+            max_steps = max(self.board.board_size_x, self.board.board_size_y)
         steps = []
         for i in range(max_steps):
             new_pos = self.moveToDirection((i+1) * x_change, (i+1) * y_change)
-            if new_pos == None or self.board.isBlocked(new_pos[0], new_pos[1]):
+            if self.board.isBlocked(new_pos[0], new_pos[1]):
                 break
             if self.board.isThreatened(new_pos[0], new_pos[1]):
                 continue
@@ -156,7 +157,7 @@ class State:
         newDestination = []
         for newDest in self.transModel.getAllPossibleNewPos():
             newPos = (newDest[0], newDest[1])
-            if (not newPos in visited) and self.board.isThreatened(newDest[0], newDest[1]) == False:
+            if (not newPos in visited) and not self.board.isThreatened(newDest[0], newDest[1]):
                 newDestination.append(newPos)
         return newDestination
 

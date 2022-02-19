@@ -1,11 +1,17 @@
 # Helper functions to aid in your implementation. Can edit/remove
 import copy
 from Chess import parser, XYtoPos
-import numpy as np
+# import numpy as np
 
 def search():
     initState = parser()
-    print(np.array(initState.board.threatened))
+    # threaten = []
+    # for i in range(initState.board.board_size_x):
+    #     row = []
+    #     for j in range(initState.board.board_size_y):
+    #         row.append(1 if initState.board.threatened[i][j] else 0)
+    #     threaten.append(row)
+    # print(np.array(threaten))
     nodesExplored = 0
     exploredNodes = []
     frontier = []
@@ -31,7 +37,6 @@ def search():
 
         newDests = initState.possibleNewDestination(exploredNodes)
         for newDest in newDests:            
-
             exploredNodes.append(newDest)
             if len(currentPath) == 0:
                 newPath = [[currentNode, newDest]]
@@ -51,4 +56,4 @@ def run_DFS():
     return moves, nodesExplored #Format to be returned
     
 
-print(run_DFS())
+# print(run_DFS())
