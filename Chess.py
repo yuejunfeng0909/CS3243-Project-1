@@ -234,11 +234,3 @@ def parser() -> State:
         game.addGoal(x, y)
     f.close()
     return game
-
-# initState = parser()
-# print("Blocked")
-# print(np.array(initState.board.blocked))
-# print("Threatened")
-# print(np.array(initState.board.threatened))
-# print("cost")
-# print(np.array(initState.board.cost))
